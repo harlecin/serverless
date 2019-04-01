@@ -5,6 +5,7 @@
 #'
 #' @param name Service name
 #' @param provider Cloud service provider to use. Currently supported "azure"
+#' @param type Specify if you want to deploy as container or as function
 #' @import yaml
 generate_deployment_config = function(name, provider, type='container') {
 
