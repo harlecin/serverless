@@ -4,6 +4,9 @@
 serverless_addin <- function() {
   # path <- getPath()
 
+  # not working if called from console
+  # cat("package name: ",getPath(),"\n")
+
   cat("get package name...\n")
   package_name <- getUserInput("package name")
 
@@ -13,27 +16,30 @@ serverless_addin <- function() {
   cat("move dockerfile...\n")
   moveDockerfile()
 
-  cat("build docker image... not working yet\n")
+  cat("build docker image locally... \n")
   buildDockerImage()
+
+  cat("build docker image in ACR... \n")
+  buildAcrImage()
 
 }
 
 #' Creates a dockerfile
 #'
 #' @param package_name The name of the package
+#' @export
 createDockerfile <- function(package_name = "package_name") {
 
   # gather parameter from user
   # r_version <- getUserCred("R Version")
   r_version <- "3.5.3"
-  path <- getPath()
-  # package_name <- "wahtever"
+  # package_name <- getPath()
   # package_name <- getUserCred("Package name")
 
   # write the file to disk
   sink(file = 'DOCKERFILE')
 
-  cat("FROM rocker/rstudio:", r_version, " \n", sep = "")
+  cat("FROM rocker/rstudio:", r_version, " \n\n", sep = "")
   # cat("RUN Rscript -e 'print('Hello, world!') \n\n")
 
   cat("RUN mkdir -p /usr/src/app \n")
@@ -42,8 +48,8 @@ createDockerfile <- function(package_name = "package_name") {
   cat("COPY ",package_name," ./",package_name,"/ \n", sep = "")
   cat("WORKDIR /usr/src/app/",package_name," \n\n", sep = "")
 
-  # ToDo: Move package into R library
   # ToDo: RUN Rscript -e "install.packages('PACKAGENAME')"
+
 
   sink()
 }
@@ -60,15 +66,16 @@ moveDockerfile <- function() {
 
 
 #' Calls the \code{docker build} command with name and tag parameters
+#' @export
 buildDockerImage <- function() {
 
-  # move two levels higher
-  args <- c("/c", "cd", "..")
+  # move one levels higher and call docker build
+  args <- c("/c", "cd", "..", "&&", "docker build", "-t", "serverless:latest", ".")
   system2("cmd", args)
 
-  # move one level higher
-  args <- c("/c", "dir")
-  system2("cmd", args)
+  # list build image
+  args <- c("/c", "docker images serverless")
+  system2("cmd", args = args)
 
 
   # build docker image
@@ -101,6 +108,7 @@ getUserCred <- function(cred) {
 #'
 #' @param input user input specifications
 #' @return user input, i.e. package name
+#' @export
 getUserInput <- function(input) {
 
   # probably completely unnecessary
@@ -133,6 +141,8 @@ getPath <- function() {
   path_file <- rstudioapi::getActiveDocumentContext()$path
   dir <- dirname(path_file)
 
+  # rstudioapi::getActiveDocumentContext()$path
+
   return(dir)
 }
 
@@ -147,3 +157,17 @@ getPackageTitle <- function() {
   return(dir)
 }
 
+#' Calls the \code{az acr build} command with name and tag parameters
+#' @export
+buildAcrImage <- function() {
+
+  args <- c("/c", "az login")
+  system2("cmd", args)
+
+  acr_name = "dstest"
+  image_name = "serverless"
+  image_tag = "latest"
+
+  args <- c("/c", "cd", "..", "&&", "az acr build", "--registry", acr_name, "--image", paste0(image_name, ":", image_tag), "." )
+  system2("cmd", args)
+}
