@@ -50,7 +50,6 @@ createDockerfile <- function(package_name = "package_name") {
 
   # ToDo: RUN Rscript -e "install.packages('PACKAGENAME')"
 
-
   sink()
 }
 
@@ -121,6 +120,22 @@ getUserInput <- function(input) {
   return(user_input)
 }
 
+#' Get user input from dropdown list via dialogue
+#'
+#' Opens a dropdown user dialogue to ask for user selection
+#'
+#' @param choice possible user choice as a vector
+#' @param title title of dropdown choices
+#' @return user input, i.e. chosen option
+#' @export
+getUserInputDropdown <- function(choice = c("choice A","choice B","choice C"), title = "resource") {
+
+  i <- menu(choice, graphics=TRUE, title=paste("Choose",title))
+  user_selection <- choice[i]
+
+  return(user_selection)
+}
+
 #' Reads the content of the active R skript
 readContent <- function() {
 
@@ -151,10 +166,11 @@ getPath <- function() {
 getPackageTitle <- function() {
 
   # use rstudioapi to read the path of the file in which you are working
-  path_file <- rstudioapi::getActiveDocumentContext()$path
+  # path_file <- rstudioapi::getActiveDocumentContext()$path
+  path_file <- getwd()
   dir <- dirname(path_file)
-
-  return(dir)
+  package_tile <- regmatches(dir,regexpr("([^/]+$)", dir))
+  return(package_tile)
 }
 
 #' Calls the \code{az acr build} command with name and tag parameters
