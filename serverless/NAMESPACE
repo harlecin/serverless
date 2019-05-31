@@ -3,5 +3,7 @@
 export(buildAcrImage)
 export(buildDockerImage)
 export(createDockerfile)
+export(dockerfile_template)
 export(getUserInput)
+export(getUserInputDropdown)
 import(yaml)

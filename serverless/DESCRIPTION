@@ -9,5 +9,6 @@ Encoding: UTF-8
 LazyData: true
 Suggests: testthat
 Imports: 
-    yaml
+    yaml,
+    whisker
 RoxygenNote: 6.1.1
