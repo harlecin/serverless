@@ -163,6 +163,7 @@ getPath <- function() {
 
 #' Helpder function to get the Path of the current package
 #' @return directory path of package
+#' @export
 getPackageTitle <- function() {
 
   # use rstudioapi to read the path of the file in which you are working
