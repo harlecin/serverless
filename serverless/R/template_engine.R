@@ -5,17 +5,17 @@
 dockerfile_template <- function(get_user_input = TRUE) {
 
   # read template
-  template <- readLines("examples/dockerfile_general.txt")
+  template <- readLines("templates/dockerfile_general.txt")
 
   # get user inputs
   if(get_user_input == TRUE) {
 
     # we could make these lists dynamic but I think we would give the user too much choice and just confuse them
     rocker_image_choice <- c("rstudio", "tidyverse", "verse", "geospatial")
-    rocker_image <- getUserInputDropdown(choice = rocker_image, title = "Rocker Image")
+    rocker_image <- getUserInputDropdown(choice = rocker_image_choice, title = "Rocker Image")
 
-    rocker_version_choice <- c("3.5.3", "3.4.4", "3.3.3")
-    rocker_version <- getUserInputDropdown(choice = rocker_version, title = "R Version")
+    rocker_r_version_choice <- c("3.5.3", "3.4.4", "3.3.3")
+    rocker_r_version <- getUserInputDropdown(choice = rocker_r_version_choice, title = "R Version")
 
     package_name = getUserInput(input = "package name")
 
@@ -29,7 +29,7 @@ dockerfile_template <- function(get_user_input = TRUE) {
 
   # combine template and input
   data <- list( rocker_image = rocker_image,
-                version = rocker_version,
+                rocker_r_version = rocker_r_version,
                 package_name = package_name
   )
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/template_engine.R
 \name{dockerfile_template}
 \alias{dockerfile_template}
-\title{Creates a dockerfile}
+\title{Creates a dockerfile with or without user input}
 \usage{
 dockerfile_template(get_user_input = TRUE)
 }
@@ -10,5 +10,5 @@ dockerfile_template(get_user_input = TRUE)
 \item{get_user_input}{Will the user input all the specifications or should we use default ones}
 }
 \description{
-Creates a dockerfile
+Creates a dockerfile with or without user input
 }
