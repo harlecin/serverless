@@ -1,0 +1,18 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workflows_latest_name": {
+            "value": null
+        },
+        "containerGroups_@{encodeURIComponent('containergroupname2')}_externalid": {
+            "value": null
+        },
+        "containerGroups_@{encodeURIComponent(body('Create_container_group')?['name'])}_externalid": {
+            "value": null
+        },
+        "connections_aci_externalid": {
+            "value": null
+        }
+    }
+}
