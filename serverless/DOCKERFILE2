@@ -1,7 +1,0 @@
-FROM rocker/tidyverse:3.3.3
-
-RUN mkdir -p /usr/src/app 
-WORKDIR /usr/src/app 
-
-COPY whatever_nerd ./whatever_nerd/ 
-WORKDIR /usr/src/app/whatever_nerd 

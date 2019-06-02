@@ -23,7 +23,7 @@ dockerfile_template <- function(get_user_input = TRUE) {
 
     # standard input
     rocker_image = "rstudio"
-    rocker_version = "3.5.3"
+    rocker_r_version = "3.5.3"
     package_name = getPackageTitle()
   }
 
@@ -33,11 +33,39 @@ dockerfile_template <- function(get_user_input = TRUE) {
                 package_name = package_name
   )
 
-  text <- whisker.render(template, data)
+  dockerfile_content <- whisker.render(template, data)
+
+  return(dockerfile_content)
+}
+
+#' Creates a tmp directory and saves dockerfile there
+#'
+#' @param dockerfile_content content of dockerfile
+#' @param folder_name the folder in which the file is saved
+#' @usage create_tmp_and_dockerfile(dockerfile_content)
+#' @export
+create_tmp_and_dockerfile <- function(dockerfile_content, folder_name = "tmp") {
+
+  # create tmp directory
+  path_current <- getwd()
+  new_folder <- "tmp"
+  dir.create(file.path(path_current, new_folder))
+  setwd(file.path(path_current, new_folder))
 
   # write to file
-  sink(file = 'DOCKERFILE')
-  cat(text)
+  sink(file = "DOCKERFILE")
+  cat(dockerfile_content)
   sink()
 
+  # reset working directory
+  setwd(path_file)
+}
+
+#' Deletes a directory and its content
+#'
+#' @param folder_name the folder to delete
+#' @export
+delete_tmp_folder <- function(folder_name = "tmp") {
+  path_current <- getwd()
+  unlink(file.path(path_current, folder_name), recursive = TRUE)
 }

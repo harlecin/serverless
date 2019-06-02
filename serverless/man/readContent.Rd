@@ -2,10 +2,12 @@
 % Please edit documentation in R/serverless_addin.R
 \name{readContent}
 \alias{readContent}
-\title{Reads the content of the active R skript}
+\title{Reads the content of the active R skript
+OBSOLETE}
 \usage{
 readContent()
 }
 \description{
 Reads the content of the active R skript
+OBSOLETE
 }
