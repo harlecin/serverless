@@ -10,5 +10,5 @@ getPath()
 directory path of package
 }
 \description{
-Helpder function to get the Path of the current package
+OBSOLETE?
 }
