@@ -1,6 +1,7 @@
 #' This Addin creates an addin for RStudio that creates a dockerfile
 #'
 #' This will create a dockerfile which includs your R package.
+#' OBSOLETE
 serverless_addin <- function() {
   # path <- getPath()
 
@@ -83,97 +84,6 @@ buildDockerImage <- function() {
   # system2("cmd", args = args)
 }
 
-#' Get user credentials via dialogue
-#'
-#' Opens a generic user dialogue to ask for credentials
-#'
-#' @param cred The name of the service.
-#' @return user input, i.e. credential
-getUserCred <- function(cred) {
-
-  # probably completely unnecessary
-
-  # user promt for Azure token
-  token <- rstudioapi::askForPassword(
-    prompt = paste("Please provide your", cred, "access token.")
-  )
-
-  return(token)
-}
-
-#' Get user input via dialogue
-#'
-#' Opens a generic user dialogue to ask for normal user input
-#'
-#' @param input user input specifications
-#' @return user input, i.e. package name
-#' @export
-getUserInput <- function(input) {
-
-  # probably completely unnecessary
-
-  # user promt for Azure token
-  user_input <- rstudioapi::showPrompt(
-    title = "User Input", message = paste("Enter",input,"please."), default = ""
-  )
-
-  return(user_input)
-}
-
-#' Get user input from dropdown list via dialogue
-#'
-#' Opens a dropdown user dialogue to ask for user selection
-#'
-#' @param choice possible user choice as a vector
-#' @param title title of dropdown choices
-#' @return user input, i.e. chosen option
-#' @export
-getUserInputDropdown <- function(choice = c("choice A","choice B","choice C"), title = "resource") {
-
-  i <- menu(choice, graphics=TRUE, title=paste("Choose",title))
-  user_selection <- choice[i]
-
-  return(user_selection)
-}
-
-#' Reads the content of the active R skript
-readContent <- function() {
-
-  # use rstudioapi to read the content of the file in which you are working
-  script_content <- rstudioapi::getActiveDocumentContext()$content
-  # print(contant[7])
-
-  # write content to file
-  sink(file = 'script.R')
-  cat(script_content, sep = "\n")
-}
-
-#' Helpder function to get the Path of the current package
-#' @return directory path of package
-getPath <- function() {
-
-  # use rstudioapi to read the path of the file in which you are working
-  path_file <- rstudioapi::getActiveDocumentContext()$path
-  dir <- dirname(path_file)
-
-  # rstudioapi::getActiveDocumentContext()$path
-
-  return(dir)
-}
-
-#' Helpder function to get the Path of the current package
-#' @return directory path of package
-#' @export
-getPackageTitle <- function() {
-
-  # use rstudioapi to read the path of the file in which you are working
-  # path_file <- rstudioapi::getActiveDocumentContext()$path
-  path_file <- getwd()
-  dir <- dirname(path_file)
-  package_tile <- regmatches(dir,regexpr("([^/]+$)", dir))
-  return(package_tile)
-}
-
 #' Calls the \code{az acr build} command with name and tag parameters
 #' @export
 buildAcrImage <- function() {
@@ -188,3 +98,17 @@ buildAcrImage <- function() {
   args <- c("/c", "cd", "..", "&&", "az acr build", "--registry", acr_name, "--image", paste0(image_name, ":", image_tag), "." )
   system2("cmd", args)
 }
+
+#' Reads the content of the active R skript
+#' OBSOLETE
+readContent <- function() {
+
+  # use rstudioapi to read the content of the file in which you are working
+  script_content <- rstudioapi::getActiveDocumentContext()$content
+  # print(contant[7])
+
+  # write content to file
+  sink(file = 'script.R')
+  cat(script_content, sep = "\n")
+}
+

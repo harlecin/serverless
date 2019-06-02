@@ -10,5 +10,6 @@ LazyData: true
 Suggests: testthat
 Imports: 
     yaml,
-    glue
+    glue,
+    whisker
 RoxygenNote: 6.1.1

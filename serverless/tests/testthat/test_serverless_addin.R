@@ -1,4 +1,5 @@
 test_that("Test User Dropdown", {
-  getUserInputDropdown()
-  expect_equal(1, number)
+  package <- getPackageTitle()
+  expect_match(package, "serverless")
+  # expect_equal(1+1,2)
 })

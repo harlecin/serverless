@@ -4,4 +4,4 @@ RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app 
 
 COPY {{package_name}} ./{{package_name}}/ 
-WORKDIR /usr/src/app/{{package_name}} 
+WORKDIR /usr/src/app/{{package_name}}
