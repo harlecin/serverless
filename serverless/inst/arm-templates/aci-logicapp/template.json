@@ -1,0 +1,208 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workflows_latest_name": {
+            "defaultValue": "latest",
+            "type": "String"
+        },
+        "containerGroups_@{encodeURIComponent('containergroupname2')}_externalid": {
+            "defaultValue": "/subscriptions/@{encodeURIComponent('a946be7b-3533-413d-9366-91e10c0b209b')}/resourceGroups/@{encodeURIComponent('serverless')}/providers/Microsoft.ContainerInstance/containerGroups/@{encodeURIComponent('containergroupname2')}",
+            "type": "String"
+        },
+        "containerGroups_@{encodeURIComponent(body('Create_container_group')?['name'])}_externalid": {
+            "defaultValue": "/subscriptions/@{encodeURIComponent('a946be7b-3533-413d-9366-91e10c0b209b')}/resourceGroups/@{encodeURIComponent('serverless')}/providers/Microsoft.ContainerInstance/containerGroups/@{encodeURIComponent(body('Create_container_group')?['name'])}",
+            "type": "String"
+        },
+        "connections_aci_externalid": {
+            "defaultValue": "/subscriptions/a946be7b-3533-413d-9366-91e10c0b209b/resourceGroups/serverless/providers/Microsoft.Web/connections/aci",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('workflows_latest_name')]",
+            "location": "westeurope",
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "manual": {
+                            "type": "Request",
+                            "kind": "Http",
+                            "inputs": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Create_container_group": {
+                            "runAfter": {},
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": {
+                                    "location": "westeurope",
+                                    "properties": {
+                                        "containers": [
+                                            {
+                                                "name": "containername2",
+                                                "properties": {
+                                                    "command": [
+                                                        "Rscript -e 'cat(1+1)'"
+                                                    ],
+                                                    "image": "rocker/r-base",
+                                                    "resources": {
+                                                        "requests": {
+                                                            "cpu": 2,
+                                                            "memoryInGB": 1
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "osType": "Linux",
+                                        "restartPolicy": "Never"
+                                    }
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['aci']['connectionId']"
+                                    }
+                                },
+                                "method": "put",
+                                "path": "[parameters('containerGroups_@{encodeURIComponent('containergroupname2')}_externalid')]",
+                                "queries": {
+                                    "x-ms-api-version": "2017-10-01-preview"
+                                }
+                            }
+                        },
+                        "Until": {
+                            "actions": {
+                                "Condition": {
+                                    "actions": {
+                                        "Delete_container_group": {
+                                            "runAfter": {
+                                                "Get_logs_of_a_container": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ApiConnection",
+                                            "inputs": {
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['aci']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "delete",
+                                                "path": "[parameters('containerGroups_@{encodeURIComponent(body('Create_container_group')?['name'])}_externalid')]",
+                                                "queries": {
+                                                    "x-ms-api-version": "2017-10-01-preview"
+                                                }
+                                            }
+                                        },
+                                        "Get_logs_of_a_container": {
+                                            "runAfter": {},
+                                            "type": "ApiConnection",
+                                            "inputs": {
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['aci']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "get",
+                                                "path": "/subscriptions/@{encodeURIComponent('a946be7b-3533-413d-9366-91e10c0b209b')}/resourceGroups/@{encodeURIComponent('serverless')}/providers/Microsoft.ContainerInstance/containerGroups/@{encodeURIComponent(body('Get_properties_of_a_container_group')?['name'])}/containers/@{encodeURIComponent('containername2')}/logs",
+                                                "queries": {
+                                                    "x-ms-api-version": "2017-10-01-preview"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "runAfter": {
+                                        "Get_properties_of_a_container_group": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "else": {
+                                        "actions": {
+                                            "Delay": {
+                                                "runAfter": {},
+                                                "type": "Wait",
+                                                "inputs": {
+                                                    "interval": {
+                                                        "count": 10,
+                                                        "unit": "Second"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "expression": {
+                                        "and": [
+                                            {
+                                                "equals": [
+                                                    "@body('Get_properties_of_a_container_group')?['properties']?['instanceView']?['state']",
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "type": "If"
+                                },
+                                "Get_properties_of_a_container_group": {
+                                    "runAfter": {},
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['aci']['connectionId']"
+                                            }
+                                        },
+                                        "method": "get",
+                                        "path": "[parameters('containerGroups_@{encodeURIComponent(body('Create_container_group')?['name'])}_externalid')]",
+                                        "queries": {
+                                            "x-ms-api-version": "2017-10-01-preview"
+                                        }
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Create_container_group": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "expression": "@equals(body('Create_container_group')?['properties']?['instanceView']?['state'], 'Succeeded')",
+                            "limit": {
+                                "count": 60,
+                                "timeout": "PT1H"
+                            },
+                            "type": "Until"
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "aci": {
+                                "connectionId": "[parameters('connections_aci_externalid')]",
+                                "connectionName": "aci",
+                                "id": "/subscriptions/a946be7b-3533-413d-9366-91e10c0b209b/providers/Microsoft.Web/locations/westeurope/managedApis/aci"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
