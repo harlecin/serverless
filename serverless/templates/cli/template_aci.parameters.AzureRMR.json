@@ -1,0 +1,23 @@
+{
+    "name": {
+        "value": "aciserverlesstest"
+    },
+    "image": {
+        "value": "alpine"
+    },
+    "location": {
+        "value": "westeurope"
+    },
+    "registryServer": {
+        "value": "acrserverlesstest"
+    },
+    "registryUser": {
+        "value": "acrserverlesstest"
+    },
+    "registryPassword": {
+        "value": "73Cgn6JKluhEVnGMRhkto2+ZQaXSh68P"
+    },
+    "restartPolicy": {
+        "value": "never"
+    }
+}

@@ -11,5 +11,8 @@ Suggests: testthat
 Imports: 
     yaml,
     glue,
-    whisker
+    whisker,
+    httr,
+    rjson,
+    rstudioapi
 RoxygenNote: 6.1.1
