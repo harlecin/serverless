@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "name": {
+        "value": "aciserverlesstest"
+    },
+    "image": {
+        "value": "alpine"
+    },
+    "location": {
+        "value": "westeurope"
+    },
+    "registryServer": {
+        "value": "acrserverlesstest"
+    },
+    "registryUser": {
+        "value": "acrserverlesstest"
+    },
+    "registryUser": {
+        "value": "73Cgn6JKluhEVnGMRhkto2+ZQaXSh68P"
+    },
+    "restartPolicy": {
+        "value": "never"
+    }
+  }
+}

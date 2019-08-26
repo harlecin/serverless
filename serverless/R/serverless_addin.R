@@ -99,16 +99,3 @@ buildAcrImage <- function() {
   system2("cmd", args)
 }
 
-#' Reads the content of the active R skript
-#' OBSOLETE
-readContent <- function() {
-
-  # use rstudioapi to read the content of the file in which you are working
-  script_content <- rstudioapi::getActiveDocumentContext()$content
-  # print(contant[7])
-
-  # write content to file
-  sink(file = 'script.R')
-  cat(script_content, sep = "\n")
-}
-

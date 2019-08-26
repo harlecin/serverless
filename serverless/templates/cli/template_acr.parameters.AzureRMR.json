@@ -1,0 +1,14 @@
+{
+    "registryName": {
+        "value": "acrserverlesstest"
+    },
+    "registryLocation": {
+        "value": "westeurope"
+    },
+    "registrySKU": {
+        "value": "Basic"
+    },
+    "adminUserEnabled": {
+        "value": true
+    }
+}
