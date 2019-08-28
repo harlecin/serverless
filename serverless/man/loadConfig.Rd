@@ -2,10 +2,11 @@
 % Please edit documentation in R/rest_deployments.R
 \name{loadConfig}
 \alias{loadConfig}
-\title{create Resource Group}
+\title{loads config}
 \usage{
 loadConfig()
 }
 \description{
-loads all necessary variables
+loads all necessary variables into global environment
+ToDo: fix global environment
 }

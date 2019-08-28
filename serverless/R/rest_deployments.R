@@ -16,13 +16,14 @@ runAll <- function() {
 
   getResourceGroupRest()
 
-  createResourceGroup(resource_group = resource_group)
+  createResourceGroup(resource_group = resource_group,
+                      location = location)
 
-  createRegistry(resource_group = resourcegroup,
+  createRegistry(resource_group = resource_group,
                  registry_name = registry_name)
 
-  secrets <- getACRSecretRest(resource_group = resource_group,
-                              registry_name = registry_name)
+  secrets <- getACRSecret(resource_group = resource_group,
+                          registry_name = registry_name)
 
   createACRTask(resource_group = resource_group,
                 registry_name = registry_name,
@@ -45,7 +46,7 @@ loadConfig <- function() {
 
   # personal information
   # i.e. git_url, git_pat, Azure subscription
-  source("R/config.R")
+  source(file.path("R", "config.R"))
 
   # Azure
   app_name <<- "azure_mgmt"
@@ -54,19 +55,19 @@ loadConfig <- function() {
 
   # server config
   location <<- "westeurope"
-  resource_group <<- "serverless_rg"
-  task_name <<- "serverless_acr_task"
+  resource_group <<- "serverless-rg"
 
   # ACR
-  registry_name <<- "serverless_acr"
+  registry_name <<- "serverlessacr"
   sku <<- "Basic"
 
   # ACR Task
-  image_name <<- "serverless_image"
+  task_name <<- "serverless-acr-task"
+  image_name <<- "serverless-image"
   image_tag <<- "latest"
 
   # ACI
-  container_name <<- "serverless_aci"
+  container_name <<- "serverless-aci"
   container_cpu <<- 1
   container_memory <<- 1
 
@@ -93,7 +94,7 @@ getToken <- function(app_name = "test",
   # check if token already exists and break
   if(exists("token")) {
     return(token)
-    }
+  }
 
   resource_uri = "https://management.core.windows.net/"
 
@@ -109,8 +110,8 @@ getToken <- function(app_name = "test",
   )
 
   token_env <- oauth2.0_token(azure_endpoint, azure_app,
-                          user_params = list(resource = resource_uri),
-                          use_oob = FALSE
+                              user_params = list(resource = resource_uri),
+                              use_oob = FALSE
   )
 
   token <- token_env$credentials$access_token
@@ -125,7 +126,6 @@ getToken <- function(app_name = "test",
 #' This function might be deleted soon.
 getResourceGroupRest <- function() {
 
-
   # ToDo: create Regex check
   if(subscription == "") {
     stop("missing subscription")
@@ -137,14 +137,14 @@ getResourceGroupRest <- function() {
   # get token
   token <- getToken()
 
-  # POST call
-  # response <- GET(url = url,
-  #                 add_headers(.headers = c(
-  #                   "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-  #                   ,"Content-Type" = "application/json")
-  #                 ),
-  #                 encode = "json"
-  # )
+  # GET call
+  response <- GET(url = url,
+                  add_headers(.headers = c(
+                    "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
+                    ,"Content-Type" = "application/json")
+                  ),
+                  encode = "json"
+  )
   response <- makeGETRestCall(url)
 
   # parse response
@@ -185,12 +185,12 @@ createResourceGroup <- function(resource_group,
 
   # PUT call
   response <- httr::PUT(url = url,
-                   add_headers(.headers = c(
-                     "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                     ,"Content-Type" = "application/json")
-                   ),
-                   body = body,
-                   encode = "json"
+                        add_headers(.headers = c(
+                          "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
+                          ,"Content-Type" = "application/json")
+                        ),
+                        body = body,
+                        encode = "json"
   )
 
   # parse response
@@ -215,6 +215,9 @@ createResourceGroup <- function(resource_group,
 createRegistry <- function(resource_group,
                            registry_name) {
 
+
+  # ToDo: Create check for alphanumeric name for registry name
+
   # REST url
   url <- glue::glue("https://management.azure.com/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.ContainerRegistry/registries/{registry_name}?api-version=2019-05-01")
 
@@ -229,12 +232,12 @@ createRegistry <- function(resource_group,
 
   # POST call
   response <- httr::PUT(url = url,
-                  add_headers(.headers = c(
-                    "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                    ,"Content-Type" = "application/json")
-                  ),
-                  body = body,
-                  encode = "json"
+                        add_headers(.headers = c(
+                          "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
+                          ,"Content-Type" = "application/json")
+                        ),
+                        body = body,
+                        encode = "json"
   )
 
   # parse response
@@ -310,25 +313,25 @@ createACRTask <- function(resource_group,
 
   # read body json
   data <- list(location = location,
-              image_name = image_name,
-              image_tag = image_tag,
-              git_url = git_url,
-              git_pat = git_pat,
-              registry_name = registry_name,
-              registry_user = secrets$user,
-              registry_pass = secrets$pass
-              )
+               image_name = image_name,
+               image_tag = image_tag,
+               git_url = git_url,
+               git_pat = git_pat,
+               registry_name = registry_name,
+               registry_user = secrets$user,
+               registry_pass = secrets$pass
+  )
   body <- fillJsonTemplate(file_name = "rest_body_acr_task.json",
-                          data = data)
+                           data = data)
 
   # PUT call
   response <- httr::PUT(url = url,
-                  add_headers(.headers = c(
-                     "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                     ,"Content-Type" = "application/json")
-                  ),
-                  body = body,
-                  encode = "json"
+                        add_headers(.headers = c(
+                          "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
+                          ,"Content-Type" = "application/json")
+                        ),
+                        body = body,
+                        encode = "json"
   )
 
 
@@ -337,9 +340,9 @@ createACRTask <- function(resource_group,
 
   # check response
   if(parsed_response$properties$provisioningState == "Succeeded") {
-    return(TRUE)
+    print(TRUE)
   } else {
-    return(FALSE)
+    print(FALSE)
   }
 }
 
@@ -375,12 +378,12 @@ createACI <- function(resource_group,
 
   # PUT call
   response <- httr::PUT(url = url,
-                  add_headers(.headers = c(
-                    "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                    ,"Content-Type" = "application/json")
-                  ),
-                  body = body,
-                  encode = "json"
+                        add_headers(.headers = c(
+                          "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
+                          ,"Content-Type" = "application/json")
+                        ),
+                        body = body,
+                        encode = "json"
   )
 
   # parse response
@@ -421,11 +424,11 @@ manageACI <- function(resource_group,
 
   # POST call
   response <- httr::POST(url = url,
-                  add_headers(.headers = c(
-                    "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                    ,"Content-Type" = "application/json")
-                  ),
-                  encode = "json"
+                         add_headers(.headers = c(
+                           "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
+                           ,"Content-Type" = "application/json")
+                         ),
+                         encode = "json"
   )
 
 
@@ -448,12 +451,12 @@ makePOSTRestCall <- function(url, body = "") {
 
   # POST call
   response <- httr::POST(url = url,
-                   add_headers(.headers = c(
-                     "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                     ,"Content-Type" = "application/json")
-                   ),
-                   body = body,
-                   encode = "json"
+                         add_headers(.headers = c(
+                           "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
+                           ,"Content-Type" = "application/json")
+                         ),
+                         body = body,
+                         encode = "json"
   )
 
   # ToDo: return the success message
@@ -483,12 +486,12 @@ makePUTRestCall <- function(url, body = "") {
 
   # POST call
   response <- httr::PUT(url = url,
-                   add_headers(.headers = c(
-                     "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                     ,"Content-Type" = "application/json")
-                   ),
-                   body = body,
-                   encode = "json"
+                        add_headers(.headers = c(
+                          "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
+                          ,"Content-Type" = "application/json")
+                        ),
+                        body = body,
+                        encode = "json"
   )
 
   # ToDo: return the success message
@@ -516,22 +519,16 @@ makeGETRestCall <- function(url) {
 
   # POST call
   response <- httr::GET(url = url,
-                  add_headers(.headers = c(
-                    "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                    ,"Content-Type" = "application/json")
-                  ),
-                  encode = "json"
+                        add_headers(.headers = c(
+                          "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
+                          ,"Content-Type" = "application/json")
+                        ),
+                        encode = "json"
   )
-
-  # parse response
-  parsed_response <- content(response, "parsed")
-
-  # ToDo: to complete
-  retrieved_resource_groups <- parsed_response$value[[1]]$name
 
   # ToDo: return the success message
   # check response
-  if(parsed_response$properties$provisioningState == "Succeeded") {
+  if(response$status_code == 200) {
     print(TRUE)
   } else {
     print(FALSE)
