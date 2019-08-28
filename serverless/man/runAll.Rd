@@ -8,4 +8,5 @@ runAll()
 }
 \description{
 runs everything
+creates all necessary variables and calls all functions
 }
