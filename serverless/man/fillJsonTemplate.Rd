@@ -4,7 +4,7 @@
 \alias{fillJsonTemplate}
 \title{Fillout json template}
 \usage{
-fillJsonTemplate(file_name = "json.json", data)
+fillJsonTemplate(file_name, data)
 }
 \arguments{
 \item{file_name}{name of the json file in the template folder}
