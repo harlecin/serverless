@@ -8,5 +8,4 @@ serverless_addin()
 }
 \description{
 This will create a dockerfile which includs your R package.
-OBSOLETE
 }

@@ -31,7 +31,8 @@ runAll <- function() {
 
   createACI(resource_group = resource_group,
             registry_name = registry_name,
-            container_name = container_name)
+            container_name = container_name,
+            env_data)
 
   manageACI(resource_group = resource_group,
             container_name = container_name,
@@ -75,7 +76,13 @@ loadConfig <- function() {
   container_name <<- "serverless-aci"
   container_cpu <<- 1
   container_memory <<- 1
-
+  env_name_1 <- "name1"
+  env_value_1 <- "value1"
+  env_name_2 <- "name2"
+  env_value_2 <- "value2"
+  env_set_1 <- list(env_name_1, env_value_1)
+  env_set_2 <- list(env_name_2, env_value_2)
+  env_data <<- list(env_set_1, env_set_2)
 }
 
 #' checks config variables
@@ -336,8 +343,8 @@ createACRTask <- function(resource_group,
                git_pat = git_pat,
                registry_name = registry_name,
                registry_user = secrets$user,
-               registry_pass = secrets$pass
-  )
+               registry_pass = secrets$pass)
+
   body <- fillJsonTemplate(file_name = "rest_body_acr_task.json",
                            data = data)
 
@@ -372,15 +379,28 @@ createACRTask <- function(resource_group,
 #' @param resource_group name of resource group
 #' @param registry_name name of Azure Container Registry
 #' @param container_name name of Azure Container Instance
+#' @param container_cpu CPU cores
+#' @param container_memory memory in RAM
+#' @param env_data a list with environment variables
 createACI <- function(resource_group,
                       registry_name,
-                      container_name) {
+                      container_name,
+                      container_cpu = "1",
+                      container_memory = "1",
+                      env_data) {
 
   # REST url
   url <- glue::glue("https://management.azure.com/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.ContainerInstance/containerGroups/{container_name}?api-version=2018-10-01")
 
   # get token
   token <- getToken()
+
+  # note for whiskers: use triple {{{}}} to prevent problems with quotes, i.e. html escaping
+  if(exists("env_data")) {
+    env_variables <- combineEnvironmentVariable(env_data)
+  } else {
+    env_variables = ""
+  }
 
   # read body json
   data = list(location = location,
@@ -389,7 +409,8 @@ createACI <- function(resource_group,
               container_name = container_name,
               registry_name = registry_name,
               container_cpu = container_cpu,
-              container_memory = container_memory)
+              container_memory = container_memory,
+              env_variables = env_variables)
   body = fillJsonTemplate(file_name = "rest_body_aci.json",
                           data = data)
 
@@ -580,3 +601,43 @@ fillJsonTemplate <- function(file_name, data) {
 
   return(json)
 }
+
+
+combineEnvironmentVariable <- function(env_data){
+
+  # env_name_1 = "name1"
+  # env_value_1 = "value1"
+  # env_name_2 = "name2"
+  # env_value_2 = "value2"
+  #
+  # set_1 = list(env_name_1, env_value_1)
+  # set_2 = list(env_name_2, env_value_2)
+  #
+  # data <- list(set_1, set_2)
+
+  # iterate over variables
+  singles <- ""
+  for(i in 1:length(env_data)) {
+    singles[i] = createSingleEnvironmentVariable(env_data[[i]][[1]], env_data[[i]][[2]])
+  }
+
+  # create final string to add to REST call
+  environment_variables = paste0(singles, collapse = ",")
+
+  return(environment_variables)
+}
+
+createSingleEnvironmentVariable <- function(name, value){
+
+  # data <- list(name = "sqlpass", value = "123abc")
+  data <- list(name = name, value = value)
+
+  template = "{
+              \"name\": \"{{name}}\",
+              \"value\": \"{{value}}\"
+              }"
+
+  string = whisker::whisker.render(template, data)
+  return(string)
+}
+

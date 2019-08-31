@@ -7,7 +7,7 @@
         "name": "{{container_name}}",
         "properties": {
           "command": [],
-          "environmentVariables": [{{{env_variables}}}],
+          "environmentVariables": [],
           "image": "{{registry_name}}.azurecr.io/{{image_name}}:{{image_tag}}",
           "ports": [
             {

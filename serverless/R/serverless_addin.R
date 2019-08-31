@@ -1,20 +1,22 @@
 #' This Addin creates an addin for RStudio that creates a dockerfile
 #'
 #' This will create a dockerfile which includs your R package.
-#' OBSOLETE
 serverless_addin <- function() {
   # path <- getPath()
 
   # not working if called from console
   # cat("package name: ",getPath(),"\n")
 
-  cat("get package name...\n")
+  print("get package name...\n")
   package_name <- getUserInput("package name")
 
-  cat("create dockerfile...\n")
-  createDockerfile(package_name)
+  print("get script name...\n")
+  script_name <- getUserInput("script name")
 
-  cat("move dockerfile...\n")
+  print("create dockerfile...\n")
+  createDockerfile(package_name, script_name)
+
+  print("move dockerfile...\n")
   moveDockerfile()
 
   cat("build docker image locally... \n")
@@ -27,9 +29,13 @@ serverless_addin <- function() {
 
 #' Creates a dockerfile
 #'
-#' @param package_name The name of the package
+#' @param package_name name of the package
+#' @param script_name name of your script to run the package
 #' @export
-createDockerfile <- function(package_name = "package_name") {
+createDockerfile <- function(package_name = "package_name",
+                             script_name = "script_name") {
+
+  # dependencies <- getDependencies(package_name)
 
   # gather parameter from user
   # r_version <- getUserCred("R Version")
@@ -46,10 +52,13 @@ createDockerfile <- function(package_name = "package_name") {
   cat("RUN mkdir -p /usr/src/app \n")
   cat("WORKDIR /usr/src/app \n\n")
 
+
   cat("COPY ",package_name," ./",package_name,"/ \n", sep = "")
   cat("WORKDIR /usr/src/app/",package_name," \n\n", sep = "")
 
-  # ToDo: RUN Rscript -e "install.packages('PACKAGENAME')"
+  cat("RUN Rscript -e \"install.packages('",package_name,"')\"", sep = "")
+
+  cat("CMD Rscript ",script_name,".R", sep = "")
 
   sink()
 }
