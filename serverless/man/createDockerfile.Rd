@@ -4,10 +4,13 @@
 \alias{createDockerfile}
 \title{Creates a dockerfile}
 \usage{
-createDockerfile(package_name = "package_name")
+createDockerfile(package_name = "package_name",
+  script_name = "script_name")
 }
 \arguments{
-\item{package_name}{The name of the package}
+\item{package_name}{name of the package}
+
+\item{script_name}{name of your script to run the package}
 }
 \description{
 Creates a dockerfile
