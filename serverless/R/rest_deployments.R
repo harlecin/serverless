@@ -32,7 +32,8 @@ runAll <- function() {
   createACI(resource_group = resource_group,
             registry_name = registry_name,
             container_name = container_name,
-            env_data)
+            secrets = secrets,
+            env_data = env_data)
 
   manageACI(resource_group = resource_group,
             container_name = container_name,
@@ -150,38 +151,18 @@ getToken <- function(app_name = "test",
 getResourceGroupRest <- function() {
 
   # ToDo: create Regex check
-  if(subscription == "") {
-    stop("missing subscription")
-  }
+  # if(subscription == "") {
+  #   stop("missing subscription")
+  # }
 
   # REST call for GET
   url <- glue::glue("https://management.azure.com/subscriptions/{subscription}/resourcegroups?api-version=2019-05-10")
+  parsed_response <- makeGETRestCall(url)
 
-  # get token
-  token <- getToken()
+  #filter reponse to get resource group list
+  retrieved_resource_groups <- unname(unlist(lapply(parsed_response$value, function (x) x[c('name')])))
 
-  # GET call
-  response <- GET(url = url,
-                  add_headers(.headers = c(
-                    "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                    ,"Content-Type" = "application/json")
-                  ),
-                  encode = "json"
-  )
-  response <- makeGETRestCall(url)
-
-  # parse response
-  parsed_response <- content(response, "parsed")
-
-  # ToDo: to complete
-  retrieved_resource_groups <- parsed_response$value[[1]]$name
-
-  # check response
-  if(is.character(retrieved_resource_groups)) {
-    print(TRUE)
-  } else {
-    print(FALSE)
-  }
+  return(retrieved_resource_groups)
 
 }
 
@@ -198,31 +179,21 @@ createResourceGroup <- function(resource_group,
   # REST url
   url <- glue::glue("https://management.azure.com/subscriptions/{subscription}/resourcegroups/{resource_group}?api-version=2019-05-10")
 
-  # get token
-  token <- getToken()
-
   # read body json
-  data = list(location = location)
-  body = fillJsonTemplate(file_name = "rest_body_resource_group.json",
+  data <- list(location = location)
+  body <- fillJsonTemplate(file_name = "rest_body_resource_group.json",
                           data = data)
 
   # PUT call
-  response <- httr::PUT(url = url,
-                        add_headers(.headers = c(
-                          "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                          ,"Content-Type" = "application/json")
-                        ),
-                        body = body,
-                        encode = "json"
-  )
-
-  # parse response
-  parsed_response <- content(response, "parsed")
+  parsed_response <- makePUTRestCall(url, body)
+  state <- parsed_response$properties$provisioningState
 
   # check response
-  if(parsed_response$properties$provisioningState == "Succeeded") {
+  if(state == "Succeeded") {
+    print("Resource group successfully created!")
     return(TRUE)
   } else {
+    print("Resource group failed to create!")
     return(FALSE)
   }
 
@@ -244,31 +215,19 @@ createRegistry <- function(resource_group,
   # REST url
   url <- glue::glue("https://management.azure.com/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.ContainerRegistry/registries/{registry_name}?api-version=2019-05-01")
 
-  # get token
-  token <- getToken()
-
   # read body json
   data = list(location = location,
               sku = sku)
   body = fillJsonTemplate(file_name = "rest_body_acr.json",
                           data = data)
 
-  # POST call
-  response <- httr::PUT(url = url,
-                        add_headers(.headers = c(
-                          "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                          ,"Content-Type" = "application/json")
-                        ),
-                        body = body,
-                        encode = "json"
-  )
-
-  # parse response
-  parsed_response <- content(response, "parsed")
+  # PUT call
+  parsed_response <- makePUTRestCall(url = url, body = body)
+  state <- parsed_response$properties$provisioningState
 
   # check response
-  if(parsed_response$properties$provisioningState == "Succeeded") {
-    print("Azure Container Registry successfully created.")
+  if(state == "Succeeded") {
+    print("ACR successfully created!")
     return(TRUE)
   } else {
     return(FALSE)
@@ -290,22 +249,8 @@ getACRSecret <- function(resource_group,
   # REST url
   url <- glue::glue("https://management.azure.com/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.ContainerRegistry/registries/{registry_name}/listCredentials?api-version=2019-05-01")
 
-  # get token
-  # token <- getToken()
-
   # POST call
-  # response <- POST(url = url,
-  #     add_headers(.headers = c(
-  #       "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-  #       ,"Content-Type" = "application/json")
-  #     ),
-  #     encode = "json"
-  # )
-
-  response <- makePOSTRestCall(url = url)
-
-  # parse response
-  parsed_response <- content(response, "parsed")
+  parsed_response <- makePOSTRestCall(url = url)
 
   # get credentials
   acr_username <- parsed_response$username
@@ -332,41 +277,26 @@ createACRTask <- function(resource_group,
   # REST url
   url <- glue::glue("https://management.azure.com/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.ContainerRegistry/registries/{registry_name}/tasks/{task_name}?api-version=2019-04-01")
 
-  # get token
-  token <- getToken()
-
   # read body json
   data <- list(location = location,
                image_name = image_name,
                image_tag = image_tag,
                git_url = git_url,
-               git_pat = git_pat,
-               registry_name = registry_name,
-               registry_user = secrets$user,
-               registry_pass = secrets$pass)
+               git_pat = git_pat)
 
   body <- fillJsonTemplate(file_name = "rest_body_acr_task.json",
                            data = data)
 
   # PUT call
-  response <- httr::PUT(url = url,
-                        add_headers(.headers = c(
-                          "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                          ,"Content-Type" = "application/json")
-                        ),
-                        body = body,
-                        encode = "json"
-  )
-
-
-  # parse response
-  parsed_response <- content(response, "parsed")
+  parsed_response <- makePUTRestCall(url = url, body = body)
+  state <- parsed_response$properties$provisioningState
 
   # check response
-  if(parsed_response$properties$provisioningState == "Succeeded") {
-    print(TRUE)
+  if(state == "Succeeded") {
+    print("ACR Task successfully created!")
+    return(TRUE)
   } else {
-    print(FALSE)
+    return(FALSE)
   }
 }
 
@@ -381,19 +311,18 @@ createACRTask <- function(resource_group,
 #' @param container_name name of Azure Container Instance
 #' @param container_cpu CPU cores
 #' @param container_memory memory in RAM
+#' @param secrets ACR secrets
 #' @param env_data a list with environment variables
 createACI <- function(resource_group,
                       registry_name,
                       container_name,
-                      container_cpu = "1",
-                      container_memory = "1",
+                      container_cpu = 1,
+                      container_memory = 1,
+                      secrets,
                       env_data) {
 
   # REST url
   url <- glue::glue("https://management.azure.com/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.ContainerInstance/containerGroups/{container_name}?api-version=2018-10-01")
-
-  # get token
-  token <- getToken()
 
   # note for whiskers: use triple {{{}}} to prevent problems with quotes, i.e. html escaping
   if(exists("env_data")) {
@@ -408,6 +337,8 @@ createACI <- function(resource_group,
               image_tag = image_tag,
               container_name = container_name,
               registry_name = registry_name,
+              registry_user = secrets$user,
+              registry_pass = secrets$pass,
               container_cpu = container_cpu,
               container_memory = container_memory,
               env_variables = env_variables)
@@ -415,20 +346,11 @@ createACI <- function(resource_group,
                           data = data)
 
   # PUT call
-  response <- httr::PUT(url = url,
-                        add_headers(.headers = c(
-                          "Authorization" = paste0("Bearer ", token) # token$credentials$access_token)
-                          ,"Content-Type" = "application/json")
-                        ),
-                        body = body,
-                        encode = "json"
-  )
-
-  # parse response
-  parsed_response <- content(response, "parsed")
+  parsed_response <- makePUTRestCall(url = url, body = body)
+  state <- parsed_response$properties$provisioningState
 
   # check response
-  if(parsed_response$properties$provisioningState == "Succeeded") {
+  if(state == "Succeeded" || state == "Pending") {
     return(TRUE)
   } else {
     return(FALSE)
@@ -499,15 +421,17 @@ makePOSTRestCall <- function(url, body = "") {
                          encode = "json"
   )
 
+  # parse response
+  parsed_response <- content(response, "parsed")
+
   # ToDo: return the success message
-  # check response
-  if(parsed_response$properties$provisioningState == "Succeeded") {
-    print(TRUE)
+  if(parsed_response$username == registry_name) {
+    print("Request successful!")
   } else {
-    print(FALSE)
+    print("Request failed!")
   }
 
-  return(response)
+  return(parsed_response)
 
 }
 
@@ -531,19 +455,30 @@ makePUTRestCall <- function(url, body = "") {
                           ,"Content-Type" = "application/json")
                         ),
                         body = body,
-                        encode = "json"
+                        encode = "json" #, verbose()
   )
 
-  # ToDo: return the success message
-  # check response
-  if(parsed_response$properties$provisioningState == "Succeeded") {
-    print(TRUE)
-  } else {
-    print(FALSE)
+  # parse response
+  parsed_response <- content(response, "parsed")
+
+  # check for error and break in case
+  if(!is.null(parsed_response$error$code)) {
+    print(paste0("Error: ", parsed_response$error$code, " - Message ", parsed_response$error$message))
+    return(FALSE)
   }
 
-  return(response)
+  state <- parsed_response$properties$provisioningState
 
+  # ToDo: return the success message
+  if(state == "Pending") {
+    print("Process started!")
+  } else if(state == "Succeeded") {
+    print("Request successful!")
+  } else {
+    print("Request failed!")
+  }
+
+  return(parsed_response)
 }
 
 #' GET REST call
@@ -569,12 +504,14 @@ makeGETRestCall <- function(url) {
   # ToDo: return the success message
   # check response
   if(response$status_code == 200) {
-    print(TRUE)
+    print("Request successful!")
   } else {
-    print(FALSE)
+    print("Request failed!")
   }
 
-  return(response)
+  parsed_response <- content(response, "parsed")
+
+  return(parsed_response)
 
 }
 
@@ -597,7 +534,7 @@ fillJsonTemplate <- function(file_name, data) {
   processed <- whisker::whisker.render(template, data)
 
   # convert to json
-  json <- rjson::fromJSON(processed)
+  json <- rjson::fromJSON(processed, simplify = FALSE)
 
   return(json)
 }
