@@ -24,9 +24,9 @@
       }
     ],
     "imageRegistryCredentials": [{
-    	"password": "6dQS6+KVwyuoPdkx6S9nFd2RwMMkKWWQ",
-    	"username": "acrserverlessrest",
-    	"server": "acrserverlessrest.azurecr.io"
+    	"password": "{{registry_pass}}",
+    	"username": "{{registry_user}}",
+    	"server": "{{registry_name}}.azurecr.io"
     }
 
     ],

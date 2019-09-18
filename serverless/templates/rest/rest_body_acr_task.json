@@ -12,7 +12,7 @@
             "type":"Docker",
             "imageNames":[
                 "{{image_name}}:{{image_tag}}"
-            ],
+                ],
             "dockerFilePath":"DOCKERFILE",
             "contextPath":"{{git_url}}",
             "isPushEnabled":true,
