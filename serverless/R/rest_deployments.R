@@ -18,7 +18,7 @@ runAll <- function() {
   createResourceGroup(resource_group = resource_group,
                       location = location)
 
-  createRegistry(resource_group = resource_group,
+  createACR(resource_group = resource_group,
                  registry_name = registry_name)
 
   secrets <- getACRSecret(resource_group = resource_group,
@@ -28,6 +28,10 @@ runAll <- function() {
                 registry_name = registry_name,
                 task_name = task_name,
                 secrets = secrets)
+
+  runACRTask(resource_group,
+             registry_name,
+             task_name)
 
   createACI(resource_group = resource_group,
             registry_name = registry_name,
@@ -50,40 +54,40 @@ loadConfig <- function() {
   # i.e. git_url, git_pat, Azure subscription
   source(file.path("R", "config.R"))
 
-  # Azure
-  app_name <<- "azure_mgmt"
-  client_id <<- "04b07795-8ddb-461a-bbee-02f9e1bf7b46"
-  client_secret <<- NULL
-  # subscription = "XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-
-  # git
-  # git_pat = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-  # git_repo = "https://github.com/{user}/{repo}"
-
-  # server config
-  location <<- "westeurope"
-  resource_group <<- "serverless-rg"
-
-  # ACR
-  registry_name <<- "serverlessacr"
-  sku <<- "Basic"
-
-  # ACR Task
-  task_name <<- "serverless-acr-task"
-  image_name <<- "serverless-image"
-  image_tag <<- "latest"
-
-  # ACI
-  container_name <<- "serverless-aci"
-  container_cpu <<- 1
-  container_memory <<- 1
-  env_name_1 <- "name1"
-  env_value_1 <- "value1"
-  env_name_2 <- "name2"
-  env_value_2 <- "value2"
-  env_set_1 <- list(env_name_1, env_value_1)
-  env_set_2 <- list(env_name_2, env_value_2)
-  env_data <<- list(env_set_1, env_set_2)
+  # # Azure
+  # app_name <<- "azure_mgmt"
+  # client_id <<- "04b07795-8ddb-461a-bbee-02f9e1bf7b46"
+  # client_secret <<- NULL
+  # # subscription = "XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+  #
+  # # git
+  # # git_pat = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  # # git_repo = "https://github.com/{user}/{repo}"
+  #
+  # # server config
+  # location <<- "westeurope"
+  # resource_group <<- "serverless-rg"
+  #
+  # # ACR
+  # registry_name <<- "serverlessacr"
+  # sku <<- "Basic"
+  #
+  # # ACR Task
+  # task_name <<- "serverless-acr-task"
+  # image_name <<- "serverless-image"
+  # image_tag <<- "latest"
+  #
+  # # ACI
+  # container_name <<- "serverless-aci"
+  # container_cpu <<- 1
+  # container_memory <<- 1
+  # env_name_1 <- "name1"
+  # env_value_1 <- "value1"
+  # env_name_2 <- "name2"
+  # env_value_2 <- "value2"
+  # env_set_1 <- list(env_name_1, env_value_1)
+  # env_set_2 <- list(env_name_2, env_value_2)
+  # env_data <<- list(env_set_1, env_set_2)
 }
 
 #' checks config variables
@@ -92,7 +96,7 @@ loadConfig <- function() {
 checkConfig <- function() {
 
   if(!exists(subscription)) {
-    stop("Azure subscirption id is missing!")
+    stop("Azure subscription id is missing!")
   }
 
 }
@@ -185,15 +189,16 @@ createResourceGroup <- function(resource_group,
                           data = data)
 
   # PUT call
-  parsed_response <- makePUTRestCall(url, body)
+  parsed_response <- makePUTRestCall(url = url,
+                                     body = body)
   state <- parsed_response$properties$provisioningState
 
   # check response
   if(state == "Succeeded") {
-    print("Resource group successfully created!")
+    message("Resource group successfully created!")
     return(TRUE)
   } else {
-    print("Resource group failed to create!")
+    message("Resource group failed to create!")
     return(FALSE)
   }
 
@@ -206,7 +211,7 @@ createResourceGroup <- function(resource_group,
 #'
 #' @param resource_group name of resource group
 #' @param registry_name name of Azure Container Registry
-createRegistry <- function(resource_group,
+createACR <- function(resource_group,
                            registry_name) {
 
 
@@ -222,12 +227,13 @@ createRegistry <- function(resource_group,
                           data = data)
 
   # PUT call
-  parsed_response <- makePUTRestCall(url = url, body = body)
+  parsed_response <- makePUTRestCall(url = url,
+                                     body = body)
   state <- parsed_response$properties$provisioningState
 
   # check response
   if(state == "Succeeded") {
-    print("ACR successfully created!")
+    message("ACR successfully created!")
     return(TRUE)
   } else {
     return(FALSE)
@@ -256,11 +262,12 @@ getACRSecret <- function(resource_group,
   acr_username <- parsed_response$username
   acr_password <- parsed_response$passwords[[1]][[2]]
 
-  acr_creds <- list(user = acr_username, pass = acr_password)
+  acr_creds <- list(user = acr_username,
+                    pass = acr_password)
   return(acr_creds)
 }
 
-## STEP 6 ##
+## STEP 6.1 ##
 #' create ACR task
 #'
 #' creates the Azure Container Registry task that builds the docker image from the git repo
@@ -288,12 +295,83 @@ createACRTask <- function(resource_group,
                            data = data)
 
   # PUT call
-  parsed_response <- makePUTRestCall(url = url, body = body)
+  parsed_response <- makePUTRestCall(url = url,
+                                     body = body)
   state <- parsed_response$properties$provisioningState
 
   # check response
   if(state == "Succeeded") {
-    print("ACR Task successfully created!")
+    message("ACR Task successfully created!")
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}
+
+## STEP 6.2 ##
+#' Run ACR task
+#'
+#' runs the Azure Container Registry task that builds the docker image from the git repo
+#'
+#' @param resource_group name of resource group
+#' @param registry_name name of Azure Container Registry
+#' @param task_name name of Azure Container Registry task
+triggerACRTask <- function(resource_group,
+                       registry_name,
+                       task_name) {
+
+  # REST url
+  url <- glue::glue("https://management.azure.com/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.ContainerRegistry/registries/{registry_name}/scheduleRun?api-version=2019-04-01")
+
+  # read body json
+  data <- list(task_name = task_name)
+
+  body <- fillJsonTemplate(file_name = "rest_body_acr_task_trigger.json",
+                           data = data)
+
+  # PUT call
+  parsed_response <- makePOSTRestCall(url = url,
+                                      body = body)
+  state <- parsed_response$properties$provisioningState
+
+  # check response
+  if(state == "Succeeded") {
+    message("ACR Task successfully run!")
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}
+
+## STEP 6.3 ##
+#' Define and run ACR task
+#'
+#' runs the Azure Container Registry task that builds the docker image from the git repo
+#'
+#' @param resource_group name of resource group
+#' @param registry_name name of Azure Container Registry
+#' @param task_name name of Azure Container Registry task
+runACRTask <- function(resource_group,
+                       registry_name,
+                       task_name) {
+
+  # REST url
+  url <- glue::glue("https://management.azure.com/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.ContainerRegistry/registries/{registry_name}/scheduleRun?api-version=2019-04-01")
+
+  # read body json
+  data <- list(task_name = task_name)
+
+  body <- fillJsonTemplate(file_name = "rest_body_acr_task_run.json",
+                           data = data)
+
+  # PUT call
+  parsed_response <- makePOSTRestCall(url = url,
+                                      body = body)
+  state <- parsed_response$properties$provisioningState
+
+  # check response
+  if(state == "Succeeded") {
+    message("ACR Task successfully run!")
     return(TRUE)
   } else {
     return(FALSE)
@@ -346,7 +424,8 @@ createACI <- function(resource_group,
                           data = data)
 
   # PUT call
-  parsed_response <- makePUTRestCall(url = url, body = body)
+  parsed_response <- makePUTRestCall(url = url,
+                                     body = body)
   state <- parsed_response$properties$provisioningState
 
   # check response
@@ -425,14 +504,15 @@ makePOSTRestCall <- function(url, body = "") {
   parsed_response <- content(response, "parsed")
 
   # ToDo: return the success message
-  if(parsed_response$username == registry_name) {
-    print("Request successful!")
+  if(!is.null(parsed_response$username) &&  parsed_response$username == registry_name) {
+    message("Request successful!")
+  # } else if (exists(parsed_response)) {
+  #   message(parsed_response)
   } else {
-    print("Request failed!")
+    message("Request failed!")
   }
 
   return(parsed_response)
-
 }
 
 
@@ -463,7 +543,7 @@ makePUTRestCall <- function(url, body = "") {
 
   # check for error and break in case
   if(!is.null(parsed_response$error$code)) {
-    print(paste0("Error: ", parsed_response$error$code, " - Message ", parsed_response$error$message))
+    message(paste0("Error: ", parsed_response$error$code, " - Message ", parsed_response$error$message))
     return(FALSE)
   }
 
@@ -471,11 +551,11 @@ makePUTRestCall <- function(url, body = "") {
 
   # ToDo: return the success message
   if(state == "Pending") {
-    print("Process started!")
+    message("Process started!")
   } else if(state == "Succeeded") {
-    print("Request successful!")
+    message("Request successful!")
   } else {
-    print("Request failed!")
+    message("Request failed!")
   }
 
   return(parsed_response)
@@ -504,9 +584,9 @@ makeGETRestCall <- function(url) {
   # ToDo: return the success message
   # check response
   if(response$status_code == 200) {
-    print("Request successful!")
+    message("Request successful!")
   } else {
-    print("Request failed!")
+    message("Request failed!")
   }
 
   parsed_response <- content(response, "parsed")
