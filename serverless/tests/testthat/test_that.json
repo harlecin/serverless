@@ -1,0 +1,6 @@
+{
+    "location": "{{location}}",
+    "sku": {
+      "name": "{{sku}}"
+    }
+}
