@@ -2,6 +2,16 @@ library('httr')
 library('rjson')
 library('whisker')
 
+runAll <- function() {
+  subscription <- getUserInput("Azure Id Subscription");
+  setAzureSub(subscription)
+
+}
+
+setAzureSub() {
+
+}
+
 #' runs eintire workflow
 #'
 #' runs everything
@@ -43,6 +53,7 @@ runAll <- function() {
 #'
 #' loads all necessary variables into global environment
 #' ToDo: fix global environment
+#' @export
 loadConfig <- function() {
 
   # personal information
@@ -88,6 +99,7 @@ loadConfig <- function() {
 #' checks config variables
 #'
 #' checks the necessary config variables
+#' @export
 checkConfig <- function() {
 
   if(!exists(subscription)) {
