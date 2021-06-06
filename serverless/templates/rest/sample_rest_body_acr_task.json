@@ -11,12 +11,10 @@
         "step":{
             "type":"Docker",
             "imageNames":[
-                "{{image_name}}:{{image_tag}}"
-                ],
+                "wahtever:latest"
+            ],
             "dockerFilePath":"DOCKERFILE",
-            "contextPath":"{{git_url}}",
-            "isPushEnabled":true,
-            "noCache":false
+            "contextPath":"https://github.com/thomaslaber/TravisR"
         },
         "trigger":{
             "timerTriggers":[
@@ -30,11 +28,11 @@
                     "name":"mySourceTrigger",
                     "sourceRepository":{
                         "sourceControlType":"Github",
-                        "repositoryUrl":"{{git_url}}",
+                        "repositoryUrl":"https://github.com/thomaslaber/TravisR",
                         "branch":"master",
                         "sourceControlAuthProperties":{
                             "tokenType":"PAT",
-                            "token":"{{git_pat}}"
+                            "token":"858924ede9250cff47484701d073973fcedcd7ef"
                         }
                     },
                     "sourceTriggerEvents":[
@@ -44,8 +42,11 @@
             ]
         }
     },
-    "location":"{{location}}",
+    "location":"westeurope",
     "identity":{
         "type":"SystemAssigned"
+    },
+    "tags":{
+        "testkey":"value"
     }
 }

@@ -5,7 +5,7 @@
 \title{create ACI}
 \usage{
 createACI(resource_group, registry_name, container_name,
-  container_cpu = "1", container_memory = "1", env_data)
+  container_cpu = 1, container_memory = 1, secrets, env_data)
 }
 \arguments{
 \item{resource_group}{name of resource group}
@@ -17,6 +17,8 @@ createACI(resource_group, registry_name, container_name,
 \item{container_cpu}{CPU cores}
 
 \item{container_memory}{memory in RAM}
+
+\item{secrets}{ACR secrets}
 
 \item{env_data}{a list with environment variables}
 }
