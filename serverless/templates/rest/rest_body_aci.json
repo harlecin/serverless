@@ -1,0 +1,36 @@
+{
+	"type": "Microsoft.ContainerInstance/containerGroups",
+  "location": "{{location}}",
+  "properties": {
+    "containers": [
+      {
+        "name": "{{container_name}}",
+        "properties": {
+          "command": [],
+          "environmentVariables": [{{{env_variables}}}],
+          "image": "{{registry_name}}.azurecr.io/{{image_name}}:{{image_tag}}",
+          "ports": [
+            {
+              "port": 80
+            }
+          ],
+          "resources": {
+            "requests": {
+              "cpu": {{container_cpu}},
+              "memoryInGB": {{container_memory}}
+            }
+          }
+        }
+      }
+    ],
+    "imageRegistryCredentials": [{
+    	"password": "{{registry_pass}}",
+    	"username": "{{registry_user}}",
+    	"server": "{{registry_name}}.azurecr.io"
+    }
+
+    ],
+    "osType": "Linux",
+    "restartPolicy": "Never"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "agentConfiguration": {
+    "cpu": 2
+  },
+  "creationDate": "2018-09-14T22:42:32.972298+00:00",
+  "id": "/subscriptions/<Subscription ID>/resourceGroups/myregistry/providers/Microsoft.ContainerRegistry/registries/myregistry/tasks/taskhelloworld",
+  "location": "westcentralus",
+  "name": "taskhelloworld",
+  "platform": {
+    "architecture": "amd64",
+    "os": "Linux",
+    "variant": null
+  },
+  "provisioningState": "Succeeded",
+  "resourceGroup": "myregistry",
+  "status": "Enabled",
+  "step": {
+    "arguments": [],
+    "baseImageDependencies": null,
+    "contextPath": "https://github.com/gituser/acr-build-helloworld-node",
+    "dockerFilePath": "Dockerfile",
+    "imageNames": [
+      "helloworld:{{.Run.ID}}"
+    ],
+    "isPushEnabled": true,
+    "noCache": false,
+    "type": "Docker"
+  },
+  "tags": null,
+  "timeout": 3600,
+  "trigger": {
+    "baseImageTrigger": {
+      "baseImageTriggerType": "Runtime",
+      "name": "defaultBaseimageTriggerName",
+      "status": "Enabled"
+    },
+    "sourceTriggers": [
+      {
+        "name": "defaultSourceTriggerName",
+        "sourceRepository": {
+          "branch": "master",
+          "repositoryUrl": "https://github.com/gituser/acr-build-helloworld-node",
+          "sourceControlAuthProperties": null,
+          "sourceControlType": "GitHub"
+        },
+        "sourceTriggerEvents": [
+          "commit"
+        ],
+        "status": "Enabled"
+      }
+    ]
+  },
+  "type": "Microsoft.ContainerRegistry/registries/tasks"
+}

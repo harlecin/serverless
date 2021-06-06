@@ -1,0 +1,1 @@
+PUT https://management.azure.com/subscriptions/{{subscriptionId}}/resourcegroups/{{resourceGroupName}}/providers/Microsoft.Resources/deployments/{{deploymentName}}?api-version=2019-05-01

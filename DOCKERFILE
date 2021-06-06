@@ -1,0 +1,8 @@
+FROM rocker/rstudio:3.5.3 
+
+RUN mkdir -p /usr/src/app 
+WORKDIR /usr/src/app 
+
+COPY C:/Users/u1341vs/OneDrive - Post AG/repos/serverless/serverless/R ./C:/Users/u1341vs/OneDrive - Post AG/repos/serverless/serverless/R/ 
+WORKDIR /usr/src/app/C:/Users/u1341vs/OneDrive - Post AG/repos/serverless/serverless/R 
+

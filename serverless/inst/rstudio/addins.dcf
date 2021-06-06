@@ -1,0 +1,4 @@
+Name: serveRless Docker Generator
+Description: Creates a DOCKERFILE with the current content.
+Binding: serverless_addin
+Interactive: false
